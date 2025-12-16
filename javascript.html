@@ -1,0 +1,283 @@
+<script>
+  /* =========================================================
+     Utility: Read file as Base64 (multiple uploads supported)
+     ========================================================= */
+  function readFileAsBase64(file) {
+    return new Promise((resolve, reject) => {
+      const reader = new FileReader();
+
+      reader.onloadend = () => {
+        resolve({
+          fileName: file.name,
+          mimeType: file.type,
+          fileContent: reader.result.split(',')[1]
+        });
+      };
+
+      reader.onerror = reject;
+      reader.readAsDataURL(file);
+    });
+  }
+
+  /* =========================================================
+     Initial page load
+     ========================================================= */
+  document.addEventListener("DOMContentLoaded", () => {
+    google.script.run
+      .withSuccessHandler(populateAreaDropdown)
+      .getAreas();
+
+    document
+      .getElementById('add-new-button')
+      .addEventListener('click', setupNewRecord);
+
+    document
+      .getElementById('finish-button')
+      .addEventListener('click', finishSession);
+  });
+
+  /* =========================================================
+     Area dropdown & contextual examples
+     ========================================================= */
+  function populateAreaDropdown(areas) {
+    const select = document.getElementById("area-select");
+    select.options[0].text = '-- Select an option --';
+
+    areas.forEach(area => {
+      const option = document.createElement("option");
+      option.value = area;
+      option.textContent = area;
+      select.appendChild(option);
+    });
+  }
+
+  document
+    .getElementById("area-select")
+    .addEventListener("change", fetchExamplesByArea);
+
+  function fetchExamplesByArea(event) {
+    const selectedArea = event.target.value;
+    hideAllTooltips();
+
+    if (selectedArea) {
+      google.script.run
+        .withSuccessHandler(populateTooltips)
+        .getExamplesByArea(selectedArea);
+    }
+  }
+
+  function populateTooltips(examples) {
+    if (examples.error) {
+      console.error(examples.error);
+      return;
+    }
+
+    for (const key in examples) {
+      const helpContainer = document.querySelector(
+        `.help-container[data-tooltip-id='${key}']`
+      );
+
+      if (helpContainer && examples[key]) {
+        const tooltip = helpContainer.querySelector('.tooltip-text');
+        const items = examples[key]
+          .split(';')
+          .map(e => `<li>${e.trim()}</li>`)
+          .join('');
+
+        tooltip.innerHTML = `<strong>Examples:</strong><ul>${items}</ul>`;
+        helpContainer.style.display = 'inline-block';
+      }
+    }
+  }
+
+  function hideAllTooltips() {
+    document
+      .querySelectorAll('.help-container[data-tooltip-id]')
+      .forEach(el => (el.style.display = 'none'));
+  }
+
+  /* =========================================================
+     Conditional fields logic
+     ========================================================= */
+  document
+    .querySelectorAll('input[name="shareInternally"]')
+    .forEach(radio => {
+      radio.addEventListener('change', e => {
+        document.getElementById('conditional-internal-areas').style.display =
+          e.target.value === 'Yes' ? 'block' : 'none';
+      });
+    });
+
+  document
+    .querySelectorAll('input[name="shareExternally"]')
+    .forEach(radio => {
+      radio.addEventListener('change', e => {
+        document.getElementById('conditional-external-parties').style.display =
+          e.target.value === 'Yes' ? 'block' : 'none';
+      });
+    });
+
+  /* =========================================================
+     Form submission
+     ========================================================= */
+  const form = document.getElementById('ropa-form');
+
+  form.addEventListener('submit', event => {
+    event.preventDefault();
+
+    const submitButton = document.getElementById('submit-button');
+    const statusMessage = document.getElementById('status-message');
+    const files = document.getElementById('fileUpload').files;
+
+    submitButton.disabled = true;
+    submitButton.textContent = 'Submitting...';
+    statusMessage.style.display = 'none';
+
+    const formData = {
+      area: form.area.value,
+      department: form.department.value,
+      activity: form.activity.value,
+      purpose: form.purpose.value,
+      personalData: form.personalData.value,
+      shareInternally: form.shareInternally.value,
+      internalAreas: form.internalAreas.value,
+      shareExternally: form.shareExternally.value,
+      externalParties: form.externalParties.value,
+      systemsUsed: form.systemsUsed.value,
+      storageLocation: form.storageLocation.value,
+      dataSource: form.dataSource.value,
+      ownerName: form.owner.value,
+      ownerEmail: form.ownerEmail.value,
+      comments: form.comments.value
+    };
+
+    if (files.length > 0) {
+      submitButton.textContent = `Submitting (${files.length} file(s))...`;
+
+      Promise.all(Array.from(files).map(readFileAsBase64))
+        .then(fileData =>
+          google.script.run
+            .withSuccessHandler(onSaveSuccess)
+            .withFailureHandler(onSaveFailure)
+            .saveDataWithFiles(formData, fileData)
+        )
+        .catch(() =>
+          onSaveFailure({ message: 'Error processing uploaded files.' })
+        );
+    } else {
+      google.script.run
+        .withSuccessHandler(onSaveSuccess)
+        .withFailureHandler(onSaveFailure)
+        .saveDataWithFiles(formData, []);
+    }
+  });
+
+  function onSaveSuccess() {
+    document.getElementById('success-modal').style.display = 'flex';
+  }
+
+  function onSaveFailure(error) {
+    const submitButton = document.getElementById('submit-button');
+    const statusMessage = document.getElementById('status-message');
+
+    statusMessage.textContent = `Error: ${error.message}`;
+    statusMessage.className = 'error';
+    statusMessage.style.display = 'block';
+
+    submitButton.disabled = false;
+    submitButton.textContent = 'Try Again';
+  }
+
+  /* =========================================================
+     People Picker (Directory Search)
+     ========================================================= */
+  const searchInput = document.getElementById('owner-search');
+  const resultsBox = document.getElementById('people-picker-results');
+  const hiddenName = document.getElementById('owner');
+  const hiddenEmail = document.getElementById('ownerEmail');
+
+  let debounceTimer = null;
+
+  searchInput.addEventListener('input', function () {
+    const query = this.value;
+
+    if (debounceTimer) clearTimeout(debounceTimer);
+    if (query.length < 3) return (resultsBox.style.display = 'none');
+
+    debounceTimer = setTimeout(() => {
+      resultsBox.innerHTML = '<div class="picker-loading">Searching...</div>';
+      resultsBox.style.display = 'block';
+
+      google.script.run
+        .withSuccessHandler(renderPeopleResults)
+        .searchUsers(query);
+    }, 300);
+  });
+
+  function renderPeopleResults(users) {
+    resultsBox.innerHTML = '';
+
+    if (!users || users.length === 0) {
+      resultsBox.innerHTML = '<div class="picker-loading">No results</div>';
+      return;
+    }
+
+    users.forEach(user => {
+      const item = document.createElement('div');
+      item.className = 'picker-item';
+      item.innerHTML = `
+        <span class="picker-name">${user.name}</span>
+        <span class="picker-email">${user.email}</span>
+      `;
+      item.onclick = () => selectUser(user);
+      resultsBox.appendChild(item);
+    });
+  }
+
+  function selectUser(user) {
+    searchInput.value = user.name;
+    hiddenName.value = user.name;
+    hiddenEmail.value = user.email;
+    resultsBox.style.display = 'none';
+  }
+
+  document.addEventListener('click', e => {
+    if (!document.querySelector('.people-picker-container').contains(e.target)) {
+      resultsBox.style.display = 'none';
+    }
+  });
+
+  /* =========================================================
+     Success modal actions
+     ========================================================= */
+  function setupNewRecord() {
+    const modal = document.getElementById('success-modal');
+    const submitButton = document.getElementById('submit-button');
+
+    const preservedArea = form.area.value;
+
+    form.reset();
+    hideAllTooltips();
+
+    form.area.value = preservedArea;
+
+    if (preservedArea) {
+      google.script.run
+        .withSuccessHandler(populateTooltips)
+        .getExamplesByArea(preservedArea);
+    }
+
+    modal.style.display = 'none';
+    submitButton.disabled = false;
+    submitButton.textContent = 'Submit Record';
+
+    window.scrollTo(0, 0);
+  }
+
+  function finishSession() {
+    document.getElementById('success-modal').style.display = 'none';
+    document.getElementById('form-card').style.display = 'none';
+    document.getElementById('thank-you-screen').style.display = 'flex';
+    google.script.host.close();
+  }
+</script>
