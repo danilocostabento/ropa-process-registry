@@ -1,0 +1,193 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <base target="_top">
+
+    <!--
+      This interface is a sample implementation created for educational
+      and portfolio purposes. It does not represent a real organization
+      or production environment.
+    -->
+
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Work+Sans:wght@400;500;700&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet">
+
+    <?!= include('styles'); ?>
+  </head>
+
+  <body>
+    <div class="main-container">
+
+      <div style="text-align: center; margin-bottom: 20px;">
+        <img
+          src="https://dummyimage.com/200x80/eeeeee/555555&text=Company+Logo"
+          alt="Company Logo"
+          style="max-width: 200px; height: auto;"
+        />
+      </div>
+
+      <div id="form-card">
+
+        <div id="success-alert"></div>
+
+        <h1>Register Processing Activity</h1>
+
+        <p>
+          Use this form to register new processes, systems, products, services,
+          or any activity that involves the processing of personal data.<br>
+          For questions, please contact the privacy or compliance team.
+        </p>
+
+        <p>
+          Highlighted examples are marked with the information icon.
+        </p>
+
+        <form id="ropa-form">
+
+          <div class="form-group">
+            <label for="area-select">Business Area <i class="required">*</i></label>
+            <select id="area-select" name="area" required>
+              <option value="" disabled selected>-- Loading areas... --</option>
+            </select>
+          </div>
+
+          <div class="form-group">
+            <label for="departamento">Department (if applicable)</label>
+            <input type="text" id="departamento" name="departamento">
+          </div>
+
+          <div class="form-group">
+            <label for="atividade">Process / Activity <i class="required">*</i></label>
+            <input type="text" id="atividade" name="atividade" required>
+          </div>
+
+          <div class="form-group">
+            <label for="motivo">Purpose of Processing <i class="required">*</i></label>
+            <textarea id="motivo" name="motivo" required></textarea>
+          </div>
+
+          <div class="form-group">
+            <label for="quaisDados">Categories of Personal Data <i class="required">*</i></label>
+            <textarea id="quaisDados" name="quaisDados" required></textarea>
+          </div>
+
+          <div class="form-group">
+            <label>Is personal data shared with other internal areas? <i class="required">*</i></label>
+            <div class="radio-group">
+              <label><input type="radio" name="compartilhaInterno" value="Yes" required> Yes</label>
+              <label><input type="radio" name="compartilhaInterno" value="No"> No</label>
+            </div>
+
+            <div id="conditional-areas-internas" class="conditional">
+              <label for="quaisAreasInternas">Which internal areas?</label>
+              <textarea id="quaisAreasInternas" name="quaisAreasInternas"></textarea>
+            </div>
+          </div>
+
+          <div class="form-group">
+            <label>Is personal data shared with external third parties? <i class="required">*</i></label>
+            <div class="radio-group">
+              <label><input type="radio" name="compartilhaExterno" value="Yes" required> Yes</label>
+              <label><input type="radio" name="compartilhaExterno" value="No"> No</label>
+            </div>
+
+            <div id="conditional-quem-externo" class="conditional">
+              <label for="quemExterno">Who are the third parties?</label>
+              <textarea id="quemExterno" name="quemExterno"></textarea>
+            </div>
+          </div>
+
+          <div class="form-group">
+            <label for="sistemas">Systems / Platforms Used <i class="required">*</i></label>
+            <input type="text" id="sistemas" name="sistemas" required>
+          </div>
+
+          <div class="form-group">
+            <label for="ondeSalva">Where is the data stored? <i class="required">*</i></label>
+            <input type="text" id="ondeSalva" name="ondeSalva" required>
+          </div>
+
+          <div class="form-group">
+            <label for="comoChega">How is the data collected? <i class="required">*</i></label>
+            <input type="text" id="comoChega" name="comoChega" required>
+          </div>
+
+          <div class="form-group">
+            <label for="modal-responsavel-search">Form Responsible <i class="required">*</i></label>
+
+            <div class="people-picker-container">
+              <span class="material-icons person-icon">person</span>
+              <input
+                type="text"
+                id="modal-responsavel-search"
+                placeholder="Type name or email..."
+                autocomplete="off"
+                style="padding-left: 35px;"
+              >
+              <div id="people-picker-results" class="picker-results"></div>
+            </div>
+
+            <input type="hidden" id="responsavel" name="responsavel">
+            <input type="hidden" id="emailResponsavel" name="emailResponsavel">
+          </div>
+
+          <div class="form-group">
+            <label for="fileUpload">Attach Document(s) (Optional)</label>
+            <input type="file" id="fileUpload" name="fileUpload" multiple>
+            <small style="display: block; margin-top: 5px; color: #666;">
+              Select one or more files. Approximate limit: 25MB.
+            </small>
+          </div>
+
+          <div class="form-group">
+            <label for="comentarios">Additional Comments</label>
+            <textarea id="comentarios" name="comentarios"></textarea>
+          </div>
+
+          <div id="status-message"></div>
+
+          <button type="submit" id="submit-button">Submit Record</button>
+
+        </form>
+      </div>
+    </div>
+
+    <div id="loading" style="display: none;">
+      <p>Saving data...</p>
+    </div>
+
+    <div id="success-modal" class="modal-overlay">
+      <div class="modal-content">
+        <svg class="modal-icon" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512">
+          <path d="M256 512A256 256 0 1 0 256 0a256 256 0 1 0 0 512zM369 209L241 337c-9.4 9.4-24.6 9.4-33.9 0l-64-64c-9.4-9.4-9.4-24.6 0-33.9s24.6-9.4 33.9 0l47 47L335 175c9.4-9.4 24.6-9.4 33.9 0s9.4 24.6 0 33.9z"/>
+        </svg>
+
+        <h2>Record Saved!</h2>
+        <p>What would you like to do next?</p>
+
+        <div class="modal-buttons">
+          <button id="add-new-button" class="btn-primary">Add New Record</button>
+          <button id="finish-button" class="btn-secondary">Finish</button>
+        </div>
+      </div>
+    </div>
+
+    <div id="thank-you-screen" class="thank-you-container">
+      <div style="text-align: center; margin-bottom: 20px; width: 50%;">
+        <h2>Submission received!</h2>
+        <p>
+          Thank you for submitting this form. The information provided will be reviewed
+          for documentation and compliance assessment purposes.<br><br>
+
+          If additional details are required, the responsible team may contact you.<br><br>
+
+          This is a demonstration interface and does not represent a production system.
+        </p>
+      </div>
+    </div>
+
+    <?!= include('javascript'); ?>
+  </body>
+</html>
