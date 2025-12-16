@@ -1,0 +1,327 @@
+<style>
+  /* ==============================
+     Global Design Tokens (Neutral)
+     ============================== */
+  :root {
+    --primary-color: #2F3A8F;
+    --background-color: #F4F6FB;
+    --surface-color: #FFFFFF;
+
+    --text-primary: #1F2937;
+    --text-secondary: #4B5563;
+    --text-muted: #6B7280;
+
+    --border-color: #E5E7EB;
+
+    --success-bg: #E6F4EA;
+    --success-text: #166534;
+
+    --error-bg: #FDECEA;
+    --error-text: #991B1B;
+  }
+
+  body {
+    font-family: 'Work Sans', sans-serif;
+    background-color: var(--background-color);
+    margin: 0;
+    padding: 20px;
+  }
+
+  /* Main container */
+  .main-container {
+    max-width: 800px;
+    margin: auto;
+  }
+
+  /* Form card */
+  #form-card {
+    background-color: var(--surface-color);
+    padding: 25px 40px;
+    border-radius: 8px;
+    box-shadow: 0 4px 12px rgba(0,0,0,0.08);
+  }
+
+  h1 {
+    color: var(--primary-color);
+    font-weight: 700;
+    margin-top: 0;
+  }
+
+  p {
+    color: var(--text-secondary);
+    line-height: 1.6;
+  }
+
+  .form-group {
+    margin-bottom: 20px;
+  }
+
+  label {
+    display: block;
+    font-weight: 500;
+    color: var(--text-primary);
+    margin-bottom: 8px;
+  }
+
+  i.required {
+    color: var(--error-text);
+    font-style: normal;
+  }
+
+  input[type="text"],
+  input[type="email"],
+  textarea,
+  select {
+    width: 100%;
+    padding: 10px;
+    border: 1px solid var(--border-color);
+    border-radius: 4px;
+    box-sizing: border-box;
+    font-family: 'Work Sans', sans-serif;
+  }
+
+  input:focus,
+  textarea:focus,
+  select:focus {
+    border-color: var(--primary-color);
+    outline: 1px solid var(--primary-color);
+  }
+
+  textarea {
+    resize: vertical;
+    min-height: 80px;
+  }
+
+  .radio-group label {
+    display: inline-block;
+    margin-right: 20px;
+    font-weight: 400;
+  }
+
+  .radio-group input {
+    margin-right: 5px;
+  }
+
+  ul {
+    margin: 0;
+    padding-left: 20px;
+  }
+
+  /* Conditional fields */
+  .conditional {
+    display: none;
+    margin-top: 15px;
+  }
+
+  /* Submit button */
+  #submit-button {
+    background-color: var(--primary-color);
+    color: #ffffff;
+    padding: 12px 20px;
+    border: none;
+    border-radius: 4px;
+    font-size: 16px;
+    font-weight: 500;
+    cursor: pointer;
+    transition: opacity 0.2s ease;
+  }
+
+  #submit-button:disabled {
+    opacity: 0.6;
+    cursor: not-allowed;
+  }
+
+  /* Tooltip / help icon */
+  .help-container {
+    position: relative;
+    display: inline-block;
+    cursor: pointer;
+    color: var(--text-muted);
+  }
+
+  .help-container .tooltip-text {
+    visibility: hidden;
+    width: 250px;
+    background-color: var(--text-primary);
+    color: #ffffff;
+    text-align: left;
+    border-radius: 6px;
+    padding: 10px;
+    position: absolute;
+    z-index: 10;
+    bottom: 125%;
+    left: 50%;
+    margin-left: -125px;
+    opacity: 0;
+    transition: opacity 0.3s;
+  }
+
+  .help-container:hover .tooltip-text {
+    visibility: visible;
+    opacity: 1;
+  }
+
+  /* Status message */
+  #status-message {
+    margin-top: 15px;
+    padding: 10px;
+    border-radius: 4px;
+    text-align: center;
+    display: none;
+  }
+
+  .success {
+    background-color: var(--success-bg);
+    color: var(--success-text);
+    border: 1px solid var(--success-text);
+  }
+
+  .error {
+    background-color: var(--error-bg);
+    color: var(--error-text);
+    border: 1px solid var(--error-text);
+  }
+
+  /* SVG icons */
+  .help-container svg,
+  .modal-icon {
+    width: 1.25em;
+    height: 1.25em;
+    fill: currentColor;
+    vertical-align: -0.125em;
+  }
+
+  /* Modal overlay */
+  .modal-overlay {
+    display: none;
+    position: fixed;
+    z-index: 1000;
+    left: 0;
+    top: 0;
+    width: 100%;
+    height: 100%;
+    background-color: rgba(0,0,0,0.5);
+    justify-content: center;
+    align-items: center;
+  }
+
+  .modal-content {
+    background-color: #ffffff;
+    padding: 30px 40px;
+    border-radius: 8px;
+    text-align: center;
+    width: 90%;
+    max-width: 450px;
+    box-shadow: 0 5px 15px rgba(0,0,0,0.25);
+    animation: fadeIn 0.3s ease-out;
+  }
+
+  @keyframes fadeIn {
+    from {
+      opacity: 0;
+      transform: scale(0.95);
+    }
+    to {
+      opacity: 1;
+      transform: scale(1);
+    }
+  }
+
+  .modal-icon {
+    width: 60px;
+    height: 60px;
+    fill: #22c55e;
+    margin-bottom: 15px;
+  }
+
+  .modal-content h2 {
+    margin-top: 0;
+    color: var(--text-primary);
+  }
+
+  .modal-buttons {
+    margin-top: 25px;
+    display: flex;
+    justify-content: center;
+    gap: 15px;
+  }
+
+  .modal-buttons button {
+    padding: 10px 20px;
+    border: none;
+    border-radius: 4px;
+    font-size: 15px;
+    font-weight: 500;
+    cursor: pointer;
+  }
+
+  .btn-primary {
+    background-color: var(--primary-color);
+    color: #ffffff;
+  }
+
+  .btn-secondary {
+    background-color: #6b7280;
+    color: #ffffff;
+  }
+
+  /* Thank you screen */
+  .thank-you-container {
+    display: none;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    text-align: center;
+    height: 80vh;
+  }
+
+  .thank-you-container h2 {
+    color: var(--text-primary);
+  }
+
+  .thank-you-container p {
+    color: var(--text-secondary);
+  }
+
+  /* People picker */
+  .people-picker-container {
+    position: relative;
+  }
+
+  .picker-results {
+    display: none;
+    position: absolute;
+    background: #ffffff;
+    width: 100%;
+    max-height: 200px;
+    overflow-y: auto;
+    border: 1px solid var(--border-color);
+    border-top: none;
+    z-index: 100;
+    box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+    border-radius: 0 0 4px 4px;
+  }
+
+  .picker-item {
+    padding: 10px;
+    cursor: pointer;
+    border-bottom: 1px solid var(--border-color);
+    display: flex;
+    flex-direction: column;
+  }
+
+  .picker-item:hover {
+    background-color: var(--background-color);
+  }
+
+  .picker-name {
+    font-weight: bold;
+    font-size: 14px;
+    color: var(--text-primary);
+  }
+
+  .picker-email {
+    font-size: 12px;
+    color: var(--text-muted);
+  }
+</style>
