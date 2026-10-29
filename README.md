@@ -47,7 +47,7 @@ The architecture centralizes control within the LGPD team while ensuring usabili
 Key sheets:
 
 * **Dados** (Critical configuration)
-* **REGISTRO MESTRE_FCAV** (Final consolidated RoPA register)
+* **REGISTRO MESTRE** (Final consolidated RoPA register)
 
 #### 3. Area Spreadsheets
 
